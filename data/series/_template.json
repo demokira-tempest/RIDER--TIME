@@ -1,0 +1,37 @@
+{
+  "series_id": "ten-khong-dau-khong-cach--vd-kamen-rider-kabuto",
+  "series_name": "Tên hiển thị đầy đủ - vd: Kamen Rider Kabuto",
+  "series_color": "#3576c9",
+  "basic_forms": [
+    {
+      "id": "id-khong-dau-khong-cach",
+      "ten_form": "Tên form hiển thị",
+      "ten_tieng_nhat": "Tên tiếng Nhật (không bắt buộc)",
+      "gaia_memory": ["Nhóm/Item A", "Nhóm/Item B"],
+      "mau_sac": "Mô tả màu sắc (không bắt buộc)",
+      "vu_khi": "Tên vũ khí đi kèm",
+      "ky_nang": [
+        {"ten": "Tên kỹ năng", "mo_ta": "Mô tả kỹ năng"}
+      ],
+      "mo_ta_chung": "Mô tả chung về form này",
+      "image_url": "",
+      "gif_url": ""
+    }
+  ],
+  "special_and_trial_forms": [
+    {
+      "id": "id-form-dac-biet",
+      "ten_form": "Tên form đặc biệt",
+      "ten_tieng_nhat": "",
+      "gaia_memory": ["Item liên quan"],
+      "loai": "Mô tả loại (VD: dạng nâng cấp, dạng thử nghiệm...)",
+      "vu_khi": "Vũ khí",
+      "ky_nang": [
+        {"ten": "Tên kỹ năng", "mo_ta": "Mô tả"}
+      ],
+      "mo_ta_chung": "Mô tả chung",
+      "image_url": "",
+      "gif_url": ""
+    }
+  ]
+}
