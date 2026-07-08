@@ -358,9 +358,147 @@ footer{
   font-size: 13px;
 }
 .error-state{ color: #e0432b; }
+
+.settings-btn{
+  position: fixed;
+  top: 18px; right: 18px;
+  width: 38px; height: 38px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--text-dim);
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 60;
+  display: flex; align-items: center; justify-content: center;
+}
+.settings-btn:hover{ border-color: var(--accent); color: var(--text); }
+
+.settings-panel{
+  position: fixed;
+  top: 64px; right: 18px;
+  width: 300px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px;
+  z-index: 60;
+  display: none;
+}
+.settings-panel.open{ display: block; }
+.settings-panel label{
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 10px 0 5px;
+}
+.settings-panel input{
+  width: 100%;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.settings-panel .help{
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin-top: 6px;
+}
+.settings-panel .help a{ color: #6fb8ff; }
+.settings-panel button{
+  width: 100%;
+  margin-top: 12px;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 9px;
+  border-radius: 4px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.upload-box{
+  margin-top: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  padding: 14px;
+  background: var(--panel-2);
+}
+.upload-box .upload-title{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.upload-box select, .upload-box input[type=file]{
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 8px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.upload-box button{
+  width: 100%;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+.upload-box button:disabled{ opacity: .5; cursor: not-allowed; }
+.upload-log{
+  margin-top: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.upload-log .ok{ color: var(--accent); }
+.upload-log .err{ color: #e0432b; }
+.change-img-link{
+  display: inline-block;
+  margin-top: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  cursor: pointer;
+  text-decoration: underline;
+}
 </style>
 </head>
 <body>
+
+<button class="settings-btn" id="settingsBtn" title="Cài đặt Token upload">⚙</button>
+<div class="settings-panel" id="settingsPanel">
+  <div style="font-family:'Oswald',sans-serif; font-weight:600; font-size:14px;">Cài đặt Upload</div>
+  <label>GitHub Personal Access Token</label>
+  <input type="password" id="ghToken" placeholder="github_pat_xxxxxxxx">
+  <label>Owner</label>
+  <input type="text" id="ghOwner" value="demokira-tempest">
+  <label>Repo</label>
+  <input type="text" id="ghRepo" value="RIDER--TIME">
+  <div class="help">Chưa có Token? <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">Tạo tại đây</a> — chọn đúng repo này, quyền Contents: Read and write. Token chỉ lưu trong trình duyệt của bạn (localStorage), không gửi lên đâu ngoài GitHub.</div>
+  <button id="saveTokenBtn">Lưu</button>
+</div>
 
 <header>
   <div class="eyebrow">RIDER DATA ARCHIVE — MULTI-SERIES</div>
@@ -417,6 +555,130 @@ let activeMemoryFilter = null;
 
 const PALETTE = ["#2fae66","#e0432b","#d9b23c","#3576c9","#9aa3a0","#b83fd6","#c9752f","#4fb8b0"];
 
+function getConfig(){
+  return {
+    token: localStorage.getItem('rider_gh_token') || '',
+    owner: localStorage.getItem('rider_gh_owner') || 'demokira-tempest',
+    repo: localStorage.getItem('rider_gh_repo') || 'RIDER--TIME'
+  };
+}
+function saveConfig(token, owner, repo){
+  localStorage.setItem('rider_gh_token', token);
+  localStorage.setItem('rider_gh_owner', owner);
+  localStorage.setItem('rider_gh_repo', repo);
+}
+
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsPanel = document.getElementById('settingsPanel');
+settingsBtn.addEventListener('click', () => {
+  const cfg = getConfig();
+  document.getElementById('ghToken').value = cfg.token;
+  document.getElementById('ghOwner').value = cfg.owner;
+  document.getElementById('ghRepo').value = cfg.repo;
+  settingsPanel.classList.toggle('open');
+});
+document.getElementById('saveTokenBtn').addEventListener('click', () => {
+  saveConfig(
+    document.getElementById('ghToken').value.trim(),
+    document.getElementById('ghOwner').value.trim(),
+    document.getElementById('ghRepo').value.trim()
+  );
+  settingsPanel.classList.remove('open');
+});
+
+function utf8ToB64(str){
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return btoa(binary);
+}
+function b64ToUtf8(b64){
+  const binary = atob(b64.replace(/\n/g,''));
+  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+async function uploadFormImage(form, file, targetField, logEl, onDone){
+  const cfg = getConfig();
+  if(!cfg.token){
+    logEl.innerHTML = '<span class="err">Chưa có Token. Bấm nút ⚙ ở góc trên phải màn hình để nhập Token trước.</span>';
+    return;
+  }
+  const headers = { 'Authorization': 'Bearer ' + cfg.token, 'Accept': 'application/vnd.github+json' };
+  const seriesMeta = SERIES.find(s => s.series_id === form._series_id);
+  const seriesPath = seriesMeta._file_path;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const imagePath = `images/${form._series_id}/${form.id}.${ext}`;
+
+  function addLog(msg, cls){
+    const line = document.createElement('div');
+    if(cls) line.className = cls;
+    line.textContent = msg;
+    logEl.appendChild(line);
+  }
+
+  try{
+    addLog('Đang đọc file...');
+    const base64Content = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    addLog('Đang kiểm tra file cũ...');
+    let existingSha = null;
+    const checkRes = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${imagePath}`, { headers });
+    if(checkRes.status === 200){ existingSha = (await checkRes.json()).sha; }
+
+    addLog('Đang tải ảnh lên: ' + imagePath);
+    const uploadBody = { message: `Upload anh cho ${form.id}`, content: base64Content, branch: 'main' };
+    if(existingSha) uploadBody.sha = existingSha;
+    const uploadRes = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${imagePath}`, {
+      method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(uploadBody)
+    });
+    if(!uploadRes.ok){
+      const e = await uploadRes.json().catch(()=>({}));
+      throw new Error('Tai anh len that bai: ' + (e.message || uploadRes.status));
+    }
+    addLog('Đã tải ảnh lên.', 'ok');
+
+    addLog('Đang cập nhật dữ liệu JSON...');
+    const jsonRes = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${seriesPath}`, { headers });
+    if(!jsonRes.ok) throw new Error('Khong tai duoc file JSON de cap nhat.');
+    const jsonFile = await jsonRes.json();
+    const currentData = JSON.parse(b64ToUtf8(jsonFile.content));
+    const cat = form._category === 'basic' ? 'basic_forms' : 'special_and_trial_forms';
+    const idx = currentData[cat].findIndex(f => f.id === form.id);
+    if(idx === -1) throw new Error('Khong tim thay form trong JSON goc.');
+    currentData[cat][idx][targetField] = imagePath;
+
+    const updateRes = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${seriesPath}`, {
+      method: 'PUT',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Cap nhat ${targetField} cho ${form.id}`,
+        content: utf8ToB64(JSON.stringify(currentData, null, 2)),
+        sha: jsonFile.sha,
+        branch: 'main'
+      })
+    });
+    if(!updateRes.ok){
+      const e = await updateRes.json().catch(()=>({}));
+      throw new Error('Cap nhat JSON that bai: ' + (e.message || updateRes.status));
+    }
+
+    form[targetField] = imagePath;
+    const globalForm = ALL_FORMS.find(f => f.id === form.id && f._series_id === form._series_id);
+    if(globalForm) globalForm[targetField] = imagePath;
+
+    addLog('Xong! Anh da gan vao ' + form.ten_form + '.', 'ok');
+    if(onDone) onDone(imagePath);
+  }catch(err){
+    addLog('Loi: ' + err.message, 'err');
+  }
+}
+
 async function loadAllData(){
   try{
     const manifestRes = await fetch('data/manifest.json');
@@ -429,6 +691,7 @@ async function loadAllData(){
         const res = await fetch(entry.file);
         if(!res.ok){ console.warn('Bỏ qua file lỗi:', entry.file); continue; }
         const json = await res.json();
+        json._file_path = entry.file;
         loaded.push(json);
       }catch(e){ console.warn('Lỗi tải', entry.file, e); }
     }
@@ -590,15 +853,27 @@ function renderGrids(){
 
 function openModal(form){
   const badges = form.gaia_memory.map(m => `<span class="badge" style="background:${form._series_color}">${m}</span>`).join('');
+  const hasMedia = form.gif_url || form.image_url;
   const media = form.gif_url ? `<img src="${form.gif_url}" alt="${form.ten_form}">` :
-    (form.image_url ? `<img src="${form.image_url}" alt="${form.ten_form}">` : `[ Chưa có ảnh/gif cho form này — thêm link vào image_url hoặc gif_url ]`);
+    (form.image_url ? `<img src="${form.image_url}" alt="${form.ten_form}">` : `[ Chưa có ảnh/gif cho form này ]`);
   const skills = (form.ky_nang||[]).map(k => `<div class="skill-item"><div class="skill-name">${k.ten}</div><div class="skill-desc">${k.mo_ta}</div></div>`).join('');
   const loai = form.loai ? `<dt>Loại</dt><dd>${form.loai}</dd>` : '';
   const mau = form.mau_sac ? `<dt>Màu sắc</dt><dd>${form.mau_sac}</dd>` : '';
   document.getElementById('modalContent').innerHTML = `
     <button class="modal-close" onclick="closeModal()">×</button>
-    <div class="modal-media">${media}</div>
-    <div class="card-series">${form._series_name}</div>
+    <div class="modal-media" id="modalMedia">${media}</div>
+    ${hasMedia ? `<div class="change-img-link" id="toggleUploadLink">Đổi ảnh khác</div>` : ''}
+    <div class="upload-box" id="uploadBox" style="${hasMedia ? 'display:none;' : ''}">
+      <div class="upload-title">◆ Tải ảnh/gif lên cho form này</div>
+      <select id="uploadTarget">
+        <option value="image_url">Ảnh tĩnh (image_url)</option>
+        <option value="gif_url">GIF động (gif_url)</option>
+      </select>
+      <input type="file" id="uploadFile" accept="image/*">
+      <button id="uploadBtn">Tải lên &amp; gắn vào form này</button>
+      <div class="upload-log" id="uploadLog"></div>
+    </div>
+    <div class="card-series" style="margin-top:16px;">${form._series_name}</div>
     <h2>${form.ten_form}</h2>
     <div class="jp">${form.ten_tieng_nhat || ''}</div>
     <div class="badges" style="margin-bottom:16px;">${badges}</div>
@@ -612,6 +887,29 @@ function openModal(form){
     ${skills}
   `;
   document.getElementById('overlay').classList.add('open');
+
+  const toggleLink = document.getElementById('toggleUploadLink');
+  if(toggleLink){
+    toggleLink.addEventListener('click', () => {
+      document.getElementById('uploadBox').style.display = 'block';
+      toggleLink.style.display = 'none';
+    });
+  }
+
+  document.getElementById('uploadBtn').addEventListener('click', async () => {
+    const file = document.getElementById('uploadFile').files[0];
+    const target = document.getElementById('uploadTarget').value;
+    const logEl = document.getElementById('uploadLog');
+    const btn = document.getElementById('uploadBtn');
+    logEl.innerHTML = '';
+    if(!file){ logEl.innerHTML = '<span class="err">Chưa chọn file.</span>'; return; }
+    btn.disabled = true;
+    await uploadFormImage(form, file, target, logEl, (imagePath) => {
+      document.getElementById('modalMedia').innerHTML = `<img src="${imagePath}" alt="${form.ten_form}">`;
+      renderGrids();
+    });
+    btn.disabled = false;
+  });
 }
 function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
 document.getElementById('overlay').addEventListener('click', (e) => { if(e.target.id === 'overlay') closeModal(); });
